@@ -50,4 +50,42 @@ public class DemoController {
             return "{\"status\":\"error\",\"error\":\"" + e.getMessage() + "\"}";
         }
     }
+    
+    /**
+     * 测试抖音视频文本提取功能
+     */
+    @Mapping("/test/douyin/text")
+    public String testDouyinTextExtraction(@Param String shareLink, 
+                                         @Param(required = false) String apiKey,
+                                         @Param(required = false) String apiBaseUrl,
+                                         @Param(required = false) String model) {
+        if (shareLink == null || shareLink.trim().isEmpty()) {
+            return """
+                {
+                  "status": "error",
+                  "error": "请提供抖音分享链接参数",
+                  "usage": "GET /test/douyin/text?shareLink=https://v.douyin.com/xxx&apiKey=your-key",
+                  "note": "apiKey可选，如不提供则从环境变量DOUYIN_API_KEY获取"
+                }
+                """;
+        }
+        
+        try {
+            return douyinMcpTools.extractDouyinText(shareLink, apiKey, apiBaseUrl, model);
+        } catch (Exception e) {
+            return "{\"status\":\"error\",\"error\":\"" + e.getMessage() + "\"}";
+        }
+    }
+    
+    /**
+     * 获取抖音文本提取功能使用指南
+     */
+    @Mapping("/guide/douyin")
+    public String getDouyinGuide() {
+        try {
+            return douyinMcpTools.getDouyinTextExtractionGuide();
+        } catch (Exception e) {
+            return "{\"status\":\"error\",\"error\":\"" + e.getMessage() + "\"}";
+        }
+    }
 }

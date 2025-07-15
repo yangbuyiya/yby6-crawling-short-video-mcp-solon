@@ -82,6 +82,27 @@
             <version>5.8.24</version>
         </dependency>
 
+        <!-- Hutool for file utilities -->
+        <dependency>
+            <groupId>cn.hutool</groupId>
+            <artifactId>hutool-core</artifactId>
+            <version>5.8.24</version>
+        </dependency>
+
+        <!-- OkHttp for better HTTP client support -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>4.12.0</version>
+        </dependency>
+
+        <!-- JAVE2 for audio/video processing (FFmpeg wrapper) -->
+        <dependency>
+            <groupId>ws.schild</groupId>
+            <artifactId>jave-all-deps</artifactId>
+            <version>3.3.1</version>
+        </dependency>
+
         <dependency>
             <groupId>org.noear</groupId>
             <artifactId>solon-test</artifactId>
