@@ -1,0 +1,41 @@
+# 应用配置
+server:
+  port: 8080
+
+# 日志配置
+logging:
+  level:
+    com.yby6.mcp.server: DEBUG
+    org.noear.solon.ai: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/douyin-mcp-server.log
+    max-size: 100MB
+    max-history: 30
+
+# MCP 配置
+solon:
+  ai:
+    mcp:
+      # MCP服务器配置
+      enabled: true
+      # 工具扫描包路径
+      tool-packages:
+        - com.yby6.mcp.server.tools
+
+# HTTP 客户端配置
+http:
+  # 连接超时时间（毫秒）
+  connect-timeout: 10000
+  # 读取超时时间（毫秒）
+  read-timeout: 30000
+  # 最大重试次数
+  max-retries: 3
+
+# 应用信息
+app:
+  name: "Douyin MCP Server"
+  version: "1.0.0"
+  description: "抖音无水印视频下载链接提取 MCP 服务器 (Java版)" 

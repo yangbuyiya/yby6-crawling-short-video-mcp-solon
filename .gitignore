@@ -27,3 +27,7 @@ nbdist/
 
 ### Mac files ###
 *.DS_Store
+
+.idea/
+.xcodemap/
+.fastRequest/
