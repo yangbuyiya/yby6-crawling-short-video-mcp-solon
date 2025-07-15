@@ -1,0 +1,12 @@
+server.port: 8080
+
+solon.app:
+  name: 'yby6-crawling-short-video-mcp-solon-app'
+  group: 'yby6-crawling-short-video-mcp-solon'
+
+solon.logging:
+  appender:
+    console:
+      level: INFO
+    file:
+      level: INFO
