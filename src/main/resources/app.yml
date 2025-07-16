@@ -1,5 +1,12 @@
 server.port: 8080
 
+
+# 应用信息
+app:
+  name: "Short video MCP Server"
+  version: "1.0.0"
+  description: "短视频无水印视频下载链接提取 MCP 服务器 (Java版)"
+
 solon.app:
   name: 'yby6-crawling-short-video-mcp-solon-app'
   group: 'yby6-crawling-short-video-mcp-solon'
@@ -10,3 +17,15 @@ solon.logging:
       level: INFO
     file:
       level: INFO
+
+
+solon.ai:
+#  chat:
+#    openAi:
+#      apiUrl: "https://tbai.xin"
+#      apiKey: "sk-JX14LKz3RKUBWPm8DXgyD6f7UfRcpsQzF4oAicKASsT64auc"
+#      model: "gpt-4o-mini"
+  mcp:
+    client:
+      yby6-crawling-short-video-mcp-solon-app:
+        apiUrl: "http://localhost:8080/mcp/sse"

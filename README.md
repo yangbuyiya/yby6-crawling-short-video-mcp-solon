@@ -1,19 +1,42 @@
-# 抖音无水印视频下载链接提取 MCP 服务器 (Java版)
+# 短视频/图集提取 MCP 服务器
 
-基于 Solon 框架的 Model Context Protocol (MCP) 服务器，可以从抖音分享链接获取无水印视频下载链接，并支持从视频中提取文本内容。
+基于 Solon 框架的 Model Context Protocol (MCP) 服务器，支持从多个短视频平台获取无水印视频下载链接，并支持从视频中提取文本内容。
 
 ## 🎯 功能特性
 
-- 🔗 从抖音分享链接获取无水印视频下载链接
-- 🎤 从抖音视频中提取文本内容（语音识别）
+- 🔗 从分享链接获取无水印视频/图集下载链接
+- 🎤 从视频中提取文本内容（语音识别）
 - 📱 模拟移动端访问，绕过水印限制
-- 🎯 解析视频基本信息（ID、标题、下载地址）
+- 🎯 解析视频基本信息（ID、标题、下载地址、作者信息）
+- 🖼️ 支持图集解析（小红书图文内容）
 - 🎬 自动下载视频并提取音频
 - 🗣️ 集成语音识别API（SiliconFlow）
 - 🧹 自动清理临时文件
 - 🛠️ 基于 Solon AI MCP 框架实现
 - ⚡ 高性能异步处理
 - 🔧 支持 Claude Desktop 集成
+
+## 📱 支持平台
+
+### ✅ 已支持平台
+
+| 平台 | 支持状态 | 功能 |
+|------|---------|------|
+| 🎵 抖音 | ✅ 完整支持 | 视频解析、文本提取 |
+| 📝 小红书 | ✅ 完整支持 | 视频/图集解析 |
+
+### 🚧 即将支持平台
+
+| 平台 | 开发状态 | 预计上线 |
+|------|---------|----------|
+| 🚀 快手 | 🔨 开发中 | v2.0 |
+| 📺 微博视频 | 📋 计划中 | v2.1 |
+| 🎪 皮皮虾 | 📋 计划中 | v2.1 |
+| 🎭 微视 | 📋 计划中 | v2.2 |
+| 🍉 西瓜视频 | 📋 计划中 | v2.2 |
+| 🎬 更多平台 | 📋 规划中 | 持续更新 |
+
+> 💡 **提示**: 当前版本专注于抖音和小红书的稳定支持，其他平台正在积极开发中！
 
 ## 🏗️ 技术架构
 
@@ -26,20 +49,6 @@
 - **JSON处理**: Jackson
 - **构建工具**: Maven
 
-## 📦 项目结构
-
-```
-src/main/java/com/yby6/mcp/server/
-├── App.java                    # 应用启动类
-├── DemoController.java         # 测试控制器
-├── model/
-│   └── DouyinVideoInfo.java   # 视频信息模型
-├── processor/
-│   └── DouyinProcessor.java   # 抖音处理器核心类
-└── tools/
-    └── DouyinMcpTools.java    # MCP工具类
-```
-
 ## 🚀 快速开始
 
 ### 1. 环境要求
@@ -51,7 +60,7 @@ src/main/java/com/yby6/mcp/server/
 
 ```bash
 # 克隆项目
-cd /Users/yangbuyi/Documents/projectDemo/ai/yby6-crawling-short-video-mcp-solon
+cd /f:/knowledge/yby6-study/yby6-crawling-short-video-mcp-solon
 
 # 编译项目
 mvn clean package
@@ -62,111 +71,89 @@ mvn solon:run
 java -jar target/yby6-crawling-short-video-mcp-solon.jar
 ```
 
-### 3. 测试接口
-
-服务启动后，可以通过以下接口测试功能：
-
-```bash
-# 测试获取下载链接
-curl "http://localhost:8080/test/douyin?shareLink=https://v.douyin.com/xxx"
-
-# 测试解析视频信息
-curl "http://localhost:8080/test/douyin/info?shareLink=https://v.douyin.com/xxx"
-
-# 测试文本提取功能（需要API密钥）
-curl "http://localhost:8080/test/douyin/text?shareLink=https://v.douyin.com/xxx&apiKey=your-api-key"
-
-# 获取使用指南
-curl "http://localhost:8080/guide/douyin"
-
-# 健康检查
-curl "http://localhost:8080/hello"
-```
-
 ## 🛠️ MCP 工具
 
-项目提供了四个 MCP 工具：
+项目提供了四个核心 MCP 工具：
 
-### 1. `get_douyin_download_link`
+### 1. `share_url_parse_tool` ⭐
 
-获取抖音视频的无水印下载链接
+解析视频分享链接，获取视频信息
 
 **参数：**
-- `shareLink`: 抖音分享链接或包含链接的文本
+- `shareUrl`: 视频分享链接或包含链接的文本
 
 **返回：**
 ```json
 {
-  "status": "success",
-  "video_id": "7xxx",
-  "title": "视频标题",
-  "download_url": "https://...",
-  "description": "视频标题: xxx",
-  "usage_tip": "可以直接使用此链接下载无水印视频"
+  "code": 200,
+  "msg": "解析成功",
+  "data": {
+    "videoUrl": "https://...",
+    "coverUrl": "https://...",
+    "title": "视频标题",
+    "author": {
+      "uid": "用户ID",
+      "name": "用户昵称",
+      "avatar": "头像URL"
+    },
+    "images": [
+      {
+        "url": "图片URL",
+        "livePhotoUrl": "实况照片URL（如果有）"
+      }
+    ],
+    "status": "success",
+    "description": "视频描述",
+    "usageTip": "使用提示"
+  }
 }
 ```
 
-### 2. `parse_douyin_video_info`
+### 2. `video_id_parse_tool`
 
-解析抖音分享链接，获取视频基本信息
-
-**参数：**
-- `shareLink`: 抖音分享链接
-
-**返回：**
-```json
-{
-  "video_id": "7xxx",
-  "title": "视频标题",
-  "download_url": "https://...",
-  "status": "success"
-}
-```
-
-### 3. `extract_douyin_text` ⭐
-
-从抖音分享链接提取视频中的文本内容（语音识别）
+根据平台和视频ID解析视频信息
 
 **参数：**
-- `shareLink`: 抖音分享链接或包含链接的文本（必需）
-- `apiKey`: 语音识别API密钥（可选，如不提供则从环境变量 `DOUYIN_API_KEY` 获取）
+- `source`: 视频来源平台 (douyin/redbook)
+- `videoId`: 视频ID
+
+**返回：** 同上格式
+
+### 3. `share_text_parse_tool` ⭐
+
+从视频分享链接提取视频中的文本内容 API：https://cloud.siliconflow.cn/i/tbvUltCF
+
+**参数：**
+- `shareUrl`: 视频分享链接或包含链接的文本（必需）
+- `apiKey`: 语音识别API密钥（可选，如不提供则从环境变量 `YBY6_API_KEY` 获取）
 - `apiBaseUrl`: API基础URL（可选，默认使用SiliconFlow）
 - `model`: 语音识别模型（可选，默认使用SenseVoiceSmall）
 
 **返回：**
 ```json
 {
-  "status": "success",
-  "text_content": "提取的文本内容",
-  "message": "文本提取完成"
+  "code": 200,
+  "msg": "提取成功",
+  "data": {
+    "text_content": "提取的文本内容",
+    "video_info": {
+      "title": "视频标题",
+      "author": "作者信息"
+    }
+  }
 }
 ```
-
-**功能流程：**
-1. 解析抖音分享链接
-2. 下载无水印视频
-3. 从视频中提取音频
-4. 调用语音识别API提取文本
-5. 自动清理临时文件
-
-### 4. `douyin_text_extraction_guide`
-
-获取抖音视频文本提取功能的使用指南
-
-**参数：** 无
-
-**返回：** 详细的使用指南文档
 
 ## 🔧 Claude Desktop 配置
 
 在 `claude_desktop_config.json` 中添加：
 
-### 基础配置（仅支持视频下载链接获取）
+### 基础配置（仅支持视频解析）
 
 ```json
 {
   "mcpServers": {
-    "douyin-java-mcp": {
+    "video-mcp-server": {
       "command": "java",
       "args": [
         "-jar",
@@ -183,14 +170,14 @@ curl "http://localhost:8080/hello"
 ```json
 {
   "mcpServers": {
-    "douyin-java-mcp": {
+    "video-mcp-server": {
       "command": "java",
       "args": [
         "-jar",
         "/path/to/yby6-crawling-short-video-mcp-solon.jar"
       ],
       "env": {
-        "DOUYIN_API_KEY": "your-siliconflow-api-key-here"
+        "YBY6_API_KEY": "your-siliconflow-api-key-here"
       }
     }
   }
@@ -199,88 +186,22 @@ curl "http://localhost:8080/hello"
 
 ### 环境变量说明
 
-- `DOUYIN_API_KEY`: SiliconFlow 或其他兼容OpenAI格式的语音识别API密钥
-  - 获取地址：https://cloud.siliconflow.cn/
+- `YBY6_API_KEY`: SiliconFlow 或其他兼容OpenAI格式的语音识别API密钥
+  - 获取地址：https://cloud.siliconflow.cn/i/tbvUltCF
   - 用于调用语音识别服务，将视频音频转换为文本
 
-## 📝 核心实现
+### 添加新平台
 
-### DouyinProcessor 核心逻辑
+要添加新平台支持，需要：
 
-1. **链接解析**: 使用正则表达式提取分享链接
-2. **重定向处理**: 获取真实的视频页面URL
-3. **页面解析**: 提取页面中的 `window._ROUTER_DATA`
-4. **JSON解析**: 使用Jackson解析视频信息
-5. **链接转换**: 将有水印链接转换为无水印链接
-
-### 关键代码片段
-
-```java
-// 解析视频信息的核心逻辑
-public DouyinVideoInfo parseShareUrl(String shareText) throws Exception {
-    // 1. 提取分享链接
-    String shareUrl = extractShareUrl(shareText);
-    
-    // 2. 获取重定向后的真实链接
-    String realUrl = getRealVideoUrl(shareUrl);
-    
-    // 3. 提取视频ID
-    String videoId = extractVideoId(realUrl);
-    
-    // 4. 获取视频页面内容并解析
-    String pageContent = getPageContent(standardShareUrl);
-    return parseVideoInfo(pageContent, videoId);
-}
-```
-
-## 🔍 错误处理
-
-项目包含完善的错误处理机制：
-
-- **网络异常**: 自动重试和优雅降级
-- **解析失败**: 详细的错误信息返回
-- **参数验证**: 输入参数的合法性检查
-- **日志记录**: 完整的操作日志记录
-
-## 📊 性能特点
-
-- **内存优化**: 流式处理，避免大文件加载
-- **连接复用**: HTTP连接池管理
-- **异步处理**: 非阻塞操作提升性能
-- **缓存机制**: 减少重复请求
-
-## 🛡️ 安全考虑
-
-- **请求头伪造**: 模拟真实移动设备访问
-- **频率限制**: 避免过度请求被封禁
-- **异常处理**: 避免敏感信息泄露
-- **输入验证**: 防止恶意输入攻击
-
-## ⚠️ 使用须知
-
-1. **合法使用**: 请遵守相关法律法规，仅用于个人学习研究
-2. **版权尊重**: 不得用于侵犯他人知识产权的行为
-3. **频率控制**: 避免过于频繁的请求，防止被限制访问
-4. **免责声明**: 使用者需自行承担使用风险和责任
-
-## 🔨 开发相关
-
-### 本地开发
-
-```bash
-# 开发模式运行
-mvn solon:run
-
-# 代码检查
-mvn checkstyle:check
-
-# 单元测试
-mvn test
-```
+1. 在 `VideoSource` 枚举中添加新平台
+2. 创建对应的 `Parser` 实现类
+3. 在 `ParserFactory` 中注册新解析器
+4. 编写对应的单元测试
 
 ### 自定义配置
 
-可以通过修改 `application.yml` 来自定义配置：
+可以通过修改 `app.yml` 来自定义配置：
 
 - 服务端口
 - 日志级别
@@ -295,6 +216,21 @@ MIT License
 
 欢迎提交 Issue 和 Pull Request！
 
+### 贡献指南
+
+1. Fork 本仓库
+2. 创建功能分支 (`git checkout -b feature/AmazingFeature`)
+3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
+4. 推送到分支 (`git push origin feature/AmazingFeature`)
+5. 打开 Pull Request
+
 ---
 
-**注意**: 本项目仅供学习交流使用，请遵守相关法律法规。 
+# **注意**: 本项目仅供学习交流使用，请遵守相关法律法规。
+# ⚠️ 使用须知
+
+1. **合法使用**: 请遵守相关法律法规，仅用于个人学习研究
+2. **版权尊重**: 不得用于侵犯他人知识产权的行为
+3. **频率控制**: 避免过于频繁的请求，防止被限制访问
+4. **免责声明**: 使用者需自行承担使用风险和责任
+5. **平台限制**: 不同平台可能有不同的访问限制和反爬策略
