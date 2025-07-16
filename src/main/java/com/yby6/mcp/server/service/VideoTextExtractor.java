@@ -79,6 +79,8 @@ public class VideoTextExtractor {
             throw new IllegalArgumentException("视频信息无效或缺少视频下载链接");
         }
 
+        log.info("视频信息: {}", videoInfo);
+        
         try {
             log.info("开始从视频中提取文本内容: {}", videoInfo.getTitle());
 
