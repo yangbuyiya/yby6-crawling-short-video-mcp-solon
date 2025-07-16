@@ -144,10 +144,24 @@ java -jar target/yby6-crawling-short-video-mcp-solon.jar
 }
 ```
 
-## 🔧 Claude Desktop 配置
+# 🔧 Claude Desktop 配置
 
 在 `claude_desktop_config.json` 中添加：
 
+## SSE 模式
+### 完整配置（支持视频解析和文本提取功能）
+```json
+
+ {
+   "mcpServers": {
+     "video-mcp-server": { 
+       "url": "http://localhost:8080/mcp/sse?apiKey=获取的API：https://cloud.siliconflow.cn/i/tbvUltCF "
+     }
+   }
+ }
+```
+
+## STDIO 模式
 ### 基础配置（仅支持视频解析）
 
 ```json

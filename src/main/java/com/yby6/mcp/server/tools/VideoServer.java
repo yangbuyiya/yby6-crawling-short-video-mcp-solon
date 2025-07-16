@@ -159,6 +159,10 @@ public class VideoServer {
                 }
             }
             
+            if (null != apiBaseUrl && (!apiBaseUrl.startsWith("http://") && !apiBaseUrl.startsWith("https://"))) {
+                return createErrorResponse("您当前传递的API基础URL格式错误《" + apiBaseUrl + "》" + "请检查并重新设置！");
+            }
+            
             // 1. 解析视频信息
             VideoInfo videoInfo = videoParseService.parseShareUrl(shareText);
             

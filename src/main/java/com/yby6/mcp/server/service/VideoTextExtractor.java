@@ -3,8 +3,8 @@ package com.yby6.mcp.server.service;
 import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.util.IdUtil;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.yby6.mcp.server.utils.JsonUtil;
 import com.yby6.mcp.server.model.VideoInfo;
+import com.yby6.mcp.server.utils.JsonUtil;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.apache.commons.lang3.StringUtils;
@@ -33,24 +33,24 @@ import java.util.concurrent.TimeUnit;
 @Component
 @Slf4j
 public class VideoTextExtractor {
-
+    
     private static final String USER_AGENT = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_2 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) EdgiOS/121.0.2277.107 Version/17.0 Mobile/15E148 Safari/604.1";
     
     // 默认API配置
     private static final String DEFAULT_API_BASE_URL = "https://api.siliconflow.cn/v1/audio/transcriptions";
     private static final String DEFAULT_MODEL = "FunAudioLLM/SenseVoiceSmall";
-
-
+    
+    
     private final OkHttpClient httpClient;
     private final Path tempDir;
-
+    
     public VideoTextExtractor() {
         this.httpClient = new OkHttpClient.Builder()
                 .connectTimeout(10, TimeUnit.MINUTES)
                 .readTimeout(10, TimeUnit.MINUTES)
                 .writeTimeout(10, TimeUnit.MINUTES)
                 .build();
-
+        
         // 创建临时目录
         try {
             this.tempDir = Files.createTempDirectory("video_text_extractor_" + IdUtil.fastSimpleUUID());
@@ -59,7 +59,7 @@ public class VideoTextExtractor {
             throw new RuntimeException("无法创建临时目录", e);
         }
     }
-
+    
     /**
      * 从视频信息中提取文本内容
      *
@@ -74,51 +74,54 @@ public class VideoTextExtractor {
         if (StringUtils.isBlank(apiKey)) {
             throw new IllegalArgumentException("API密钥不能为空");
         }
-
+        
         if (videoInfo == null || StringUtils.isBlank(videoInfo.getVideoUrl())) {
             throw new IllegalArgumentException("视频信息无效或缺少视频下载链接");
         }
-
+        
         log.info("视频信息: {}", videoInfo);
         
         try {
             log.info("开始从视频中提取文本内容: {}", videoInfo.getTitle());
-
+            
             // 1. 下载视频
             log.info("正在下载视频...");
             Path videoPath = downloadVideo(videoInfo);
-
+            
             try {
                 // 2. 提取音频
                 log.info("正在提取音频...");
                 Path audioPath = extractAudio(videoPath);
-
+                
                 try {
                     // 3. 提取文本
                     log.info("正在从音频中提取文本...");
                     String textContent = extractTextFromAudio(audioPath, apiKey,
                             StringUtils.isNotBlank(apiBaseUrl) ? apiBaseUrl : DEFAULT_API_BASE_URL,
                             StringUtils.isNotBlank(model) ? model : DEFAULT_MODEL);
-
+                    
                     log.info("文本提取完成!");
                     return textContent;
-
+                    
                 } finally {
                     // 清理音频文件
                     cleanupFiles(audioPath);
                 }
-
+                
             } finally {
                 // 清理视频文件
                 cleanupFiles(videoPath);
             }
-
+            
+        } catch (IllegalArgumentException e) {
+            log.error("参数错误: {}", e.getMessage());
+            throw new Exception("参数错误: " + e.getMessage(), e);
         } catch (Exception e) {
             log.error("提取视频文本失败", e);
             throw new Exception("提取视频文本失败: " + e.getMessage(), e);
         }
     }
-
+    
     /**
      * 下载视频到临时目录
      *
@@ -129,55 +132,55 @@ public class VideoTextExtractor {
     private Path downloadVideo(VideoInfo videoInfo) throws Exception {
         String filename = "video_" + System.currentTimeMillis() + ".mp4";
         Path videoPath = tempDir.resolve(filename);
-
+        
         log.info("正在下载视频: {} -> {}", videoInfo.getTitle(), videoPath);
-
+        
         Request request = new Request.Builder()
                 .url(videoInfo.getVideoUrl())
                 .header("User-Agent", USER_AGENT)
                 .build();
-
+        
         try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) {
                 throw new IOException("下载视频失败: " + response);
             }
-
+            
             ResponseBody body = response.body();
             if (body == null) {
                 throw new IOException("响应体为空");
             }
-
+            
             long totalSize = body.contentLength();
             long downloadedSize = 0;
-
+            
             try (InputStream inputStream = body.byteStream();
                  FileOutputStream outputStream = new FileOutputStream(videoPath.toFile())) {
-
+                
                 byte[] buffer = new byte[8192];
                 int bytesRead;
-
+                
                 while ((bytesRead = inputStream.read(buffer)) != -1) {
                     outputStream.write(buffer, 0, bytesRead);
                     downloadedSize += bytesRead;
-
+                    
                     if (totalSize > 0) {
                         double progress = (double) downloadedSize / totalSize * 100;
                         if (downloadedSize % (1024 * 1024) == 0) { // 每MB打印一次进度
-                            log.info("下载进度: {:.1f}%", progress);
+                            log.debug("下载进度: {}%", String.format("%.1f", progress));
                         }
                     }
                 }
             }
-
+            
             log.info("视频下载完成: {}", videoPath);
             return videoPath;
-
+            
         } catch (IOException e) {
             log.error("下载视频时发生错误", e);
             throw new Exception("下载视频失败: " + e.getMessage(), e);
         }
     }
-
+    
     /**
      * 从视频文件中提取音频
      *
@@ -188,39 +191,39 @@ public class VideoTextExtractor {
     private Path extractAudio(Path videoPath) throws Exception {
         Path audioPath = videoPath.resolveSibling(
                 FileUtil.getPrefix(videoPath.getFileName().toString()) + ".mp3");
-
+        
         log.info("正在从视频提取音频: {} -> {}", videoPath, audioPath);
-
+        
         try {
             // 使用JAVE2进行音频提取
             File source = videoPath.toFile();
             File target = audioPath.toFile();
-
+            
             // 设置音频属性
             AudioAttributes audio = new AudioAttributes();
             audio.setCodec("libmp3lame");
             audio.setBitRate(128000);
             audio.setChannels(1);
             audio.setSamplingRate(16000);
-
+            
             // 设置编码属性
             EncodingAttributes attrs = new EncodingAttributes();
             attrs.setOutputFormat("mp3");
             attrs.setAudioAttributes(audio);
-
+            
             // 执行转换
             Encoder encoder = new Encoder();
             encoder.encode(new MultimediaObject(source), target, attrs);
-
+            
             log.info("音频提取完成: {}", audioPath);
             return audioPath;
-
+            
         } catch (EncoderException e) {
             log.error("提取音频时发生错误", e);
             throw new Exception("提取音频失败: " + e.getMessage(), e);
         }
     }
-
+    
     /**
      * 从音频文件中提取文字
      *
@@ -233,40 +236,40 @@ public class VideoTextExtractor {
      */
     private String extractTextFromAudio(Path audioPath, String apiKey, String apiBaseUrl, String model) throws Exception {
         log.info("正在调用语音识别API提取文本...");
-
+        
         try {
             File audioFile = audioPath.toFile();
-
+            
             // 构建multipart请求
             RequestBody fileBody = RequestBody.create(audioFile, MediaType.parse("audio/mpeg"));
             RequestBody modelBody = RequestBody.create(model, MediaType.parse("text/plain"));
-
+            
             MultipartBody requestBody = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM)
                     .addFormDataPart("file", audioFile.getName(), fileBody)
                     .addFormDataPart("model", model)
                     .build();
-
+            
             Request request = new Request.Builder()
                     .url(apiBaseUrl)
                     .header("Authorization", "Bearer " + apiKey)
                     .post(requestBody)
                     .build();
-
+            
             try (Response response = httpClient.newCall(request).execute()) {
                 ResponseBody body = response.body();
                 
                 if (!response.isSuccessful()) {
                     throw new IOException("API调用失败: " + response.body());
                 }
-
+                
                 if (body == null) {
                     throw new IOException("API响应体为空");
                 }
-
+                
                 String responseText = body.string();
                 log.info("API响应: {}", responseText);
-
+                
                 // 解析响应
                 try {
                     JsonNode responseJson = JsonUtil.parseJson(responseText);
@@ -283,14 +286,14 @@ public class VideoTextExtractor {
                     return responseText;
                 }
             }
-
+            
         } catch (IOException e) {
             log.error("调用语音识别API时发生错误", e);
             throw new Exception("提取文字失败: " + e.getMessage(), e);
         }
     }
     
-
+    
     /**
      * 清理指定的文件
      *
@@ -308,7 +311,7 @@ public class VideoTextExtractor {
             }
         }
     }
-
+    
     /**
      * 清理临时目录
      */
