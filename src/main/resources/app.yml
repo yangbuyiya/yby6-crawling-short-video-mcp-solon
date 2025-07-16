@@ -23,7 +23,7 @@ solon.ai:
 #  chat:
 #    openAi:
 #      apiUrl: "https://tbai.xin"
-#      apiKey: "sk-JX1XgyDK3RKUBcp6f7UASsT64au4LKzfR4oAicsQzFWPm8Dc"
+#      apiKey: ""
 #      model: "gpt-4o"
   mcp:
     client:
